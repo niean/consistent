@@ -18,7 +18,7 @@
 //
 // Read more about consistent hashing on wikipedia:  http://en.wikipedia.org/wiki/Consistent_hashing
 //
-package consistent // import "stathat.com/c/consistent"
+package consistent
 
 import (
 	"errors"
@@ -144,6 +144,16 @@ func (c *Consistent) Members() []string {
 func (c *Consistent) Get(name string) (string, error) {
 	c.RLock()
 	defer c.RUnlock()
+	if len(c.circle) == 0 {
+		return "", ErrEmptyCircle
+	}
+	key := c.hashKey(name)
+	i := c.search(key)
+	return c.circle[c.sortedHashes[i]], nil
+}
+
+// not safe, used when ring not changed
+func (c *Consistent) DirtyGet(name string) (string, error) {
 	if len(c.circle) == 0 {
 		return "", ErrEmptyCircle
 	}
